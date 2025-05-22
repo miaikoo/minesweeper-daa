@@ -44,6 +44,7 @@ class Cell:
         if self.is_mine:
             self.show_mine()
         else:
+            self.flood_fill()
             if self.surrounded_cells_mines_length == 0:
                 for cell_obj in self.surrounded_cells:
                     cell_obj.show_cell()
@@ -104,6 +105,15 @@ class Cell:
 
         # Mark the cell as opened (Use is as the last line of this method)
         self.is_opened = True
+
+    def flood_fill(self):
+        if self.is_opened or self.is_mine:
+            return
+        self.show_cell()
+        if self.surrounded_cells_mines_length == 0:
+            for neighbor in self.surrounded_cells:
+                if not neighbor.is_opened and not neighbor.is_mine:
+                    neighbor.flood_fill()      
 
     def show_mine(self):
         self.cell_btn_object.configure(bg='red')
