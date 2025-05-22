@@ -3,11 +3,19 @@ import random
 import settings
 import ctypes
 import sys
+import time
+
+game_started = False
 
 class Cell:
     all = []
     cell_count = settings.CELL_COUNT
+    flag_count = 0
     cell_count_label_object = None
+    flag_count_label_object = None
+    game_started = False
+    timer_label = None
+
     def __init__(self,x, y, is_mine=False):
         self.is_mine = is_mine
         self.is_opened = False
@@ -20,10 +28,12 @@ class Cell:
         Cell.all.append(self)
 
     def create_btn_object(self, location):
+        dynamic_width = max(10, int(30 / settings.COLS)) 
+        dynamic_height = max(4, int(20 / settings.ROWS))
         btn = Button(
             location,
-            width=12,
-            height=4,
+            width=dynamic_width,
+            height=dynamic_height,
         )
         btn.bind('<Button-1>', self.left_click_actions ) # Left Click
         btn.bind('<Button-3>', self.right_click_actions ) # Right Click
@@ -36,9 +46,38 @@ class Cell:
             bg='black',
             fg='white',
             text=f"Cells Left:{Cell.cell_count}",
-            font=("", 30)
+            font=("", 20)
         )
         Cell.cell_count_label_object = lbl
+    
+    @staticmethod
+    def create_flag_count_label(location):
+        lbl = Label(
+            location,
+            bg='black',
+            fg='orange',
+            text=f"Flags: {Cell.flag_count}/{settings.MINES_COUNT}",
+            font=("", 20)
+        )
+        Cell.flag_count_label_object = lbl
+
+    @staticmethod
+    def create_timer_label(location):
+        lbl = Label(
+            location,
+            bg='black',
+            fg='cyan',
+            text="Time: 0s",
+            font=("", 20)
+        )
+        Cell.timer_label = lbl
+    
+    @staticmethod
+    def update_timer():
+        if Cell.game_started and Cell.timer_label:
+            elapsed = int(time.time() - Cell.start_time)
+            Cell.timer_label.config(text=f"Time: {elapsed}s")
+            Cell.timer_label.after(1000, Cell.update_timer)
 
     def left_click_actions(self, event):
         if self.is_mine:
@@ -123,15 +162,25 @@ class Cell:
 
     def right_click_actions(self, event):
         if not self.is_mine_candidate:
+            if not self.is_mine_candidate and Cell.flag_count >= settings.MINES_COUNT:
+                return
+            
             self.cell_btn_object.configure(
                 bg='orange'
             )
             self.is_mine_candidate = True
+            Cell.flag_count += 1
         else:
             self.cell_btn_object.configure(
                 bg='SystemButtonFace'
             )
             self.is_mine_candidate = False
+            Cell.flag_count -= 1
+
+        if Cell.flag_count_label_object:
+            Cell.flag_count_label_object.configure(
+            text=f"Flags: {Cell.flag_count}/{settings.MINES_COUNT}"
+        )
 
     @staticmethod
     def randomize_mines():
