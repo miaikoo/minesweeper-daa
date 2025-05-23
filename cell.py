@@ -3,7 +3,6 @@ import random
 import settings
 import ctypes
 import sys
-import time
 
 game_started = False
 
@@ -14,7 +13,6 @@ class Cell:
     cell_count_label_object = None
     flag_count_label_object = None
     game_started = False
-    timer_label = None
 
     def __init__(self,x, y, is_mine=False):
         self.is_mine = is_mine
@@ -60,24 +58,6 @@ class Cell:
             font=("", 20)
         )
         Cell.flag_count_label_object = lbl
-
-    @staticmethod
-    def create_timer_label(location):
-        lbl = Label(
-            location,
-            bg='black',
-            fg='cyan',
-            text="Time: 0s",
-            font=("", 20)
-        )
-        Cell.timer_label = lbl
-    
-    @staticmethod
-    def update_timer():
-        if Cell.game_started and Cell.timer_label:
-            elapsed = int(time.time() - Cell.start_time)
-            Cell.timer_label.config(text=f"Time: {elapsed}s")
-            Cell.timer_label.after(1000, Cell.update_timer)
 
     def left_click_actions(self, event):
         if self.is_mine:
